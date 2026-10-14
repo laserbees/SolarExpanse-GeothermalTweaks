@@ -1,0 +1,61 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Unity 2022.3 (Mono, .NET 4.x profile) supports .NET Standard 2.1 -->
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <AssemblyName>GeothermalTweaks</AssemblyName>
+    <RootNamespace>GeothermalTweaks</RootNamespace>
+    <Version>0.1.0</Version>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <!-- Don't generate a .deps.json; BepInEx doesn't use it -->
+    <GenerateDependencyFile>false</GenerateDependencyFile>
+    <DebugType>portable</DebugType>
+    <!--
+      MSB3277: Assembly-CSharp records System.IO.Compression 4.2.0.0, which no reference
+      pack provides. Harmless - Mono resolves it to the game's own copy at runtime.
+    -->
+    <MSBuildWarningsAsMessages>$(MSBuildWarningsAsMessages);MSB3277</MSBuildWarningsAsMessages>
+  </PropertyGroup>
+
+  <!--
+    Path to the game install. Change it here if the game moves, or override it
+    from the command line:  dotnet build -p:GamePath="D:\Games\Solar Expanse"
+  -->
+  <PropertyGroup>
+    <GamePath Condition="'$(GamePath)' == ''">F:\SteamLibrary\steamapps\common\Solar Expanse</GamePath>
+    <ManagedPath>$(GamePath)\Solar Expanse_Data\Managed</ManagedPath>
+    <BepInExPath>$(GamePath)\BepInEx</BepInExPath>
+    <PluginDeployPath>$(BepInExPath)\plugins\$(AssemblyName)</PluginDeployPath>
+  </PropertyGroup>
+
+  <!--
+    References to DLLs that already exist in the game / BepInEx.
+    Private=false means "don't copy into the build output" - the game already has them.
+  -->
+  <ItemGroup>
+    <!-- Mod loader + patching library -->
+    <Reference Include="BepInEx"><HintPath>$(BepInExPath)\core\BepInEx.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="0Harmony"><HintPath>$(BepInExPath)\core\0Harmony.dll</HintPath><Private>false</Private></Reference>
+
+    <!-- The game's own code -->
+    <Reference Include="Assembly-CSharp"><HintPath>$(ManagedPath)\Assembly-CSharp.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Assembly-CSharp-firstpass"><HintPath>$(ManagedPath)\Assembly-CSharp-firstpass.dll</HintPath><Private>false</Private></Reference>
+
+    <!-- Odin serializer: many game classes inherit from its SerializedMonoBehaviour -->
+    <Reference Include="Sirenix.Serialization"><HintPath>$(ManagedPath)\Sirenix.Serialization.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Sirenix.OdinInspector.Attributes"><HintPath>$(ManagedPath)\Sirenix.OdinInspector.Attributes.dll</HintPath><Private>false</Private></Reference>
+
+    <!-- Unity engine -->
+    <Reference Include="UnityEngine"><HintPath>$(ManagedPath)\UnityEngine.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.CoreModule"><HintPath>$(ManagedPath)\UnityEngine.CoreModule.dll</HintPath><Private>false</Private></Reference>
+  </ItemGroup>
+
+  <!-- After each build, copy the mod DLL into BepInEx/plugins/GeothermalTweaks/ -->
+  <Target Name="DeployToGame" AfterTargets="Build" Condition="Exists('$(BepInExPath)')">
+    <MakeDir Directories="$(PluginDeployPath)" />
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(PluginDeployPath)" />
+    <Message Importance="high" Text="Deployed $(TargetFileName) to $(PluginDeployPath)" />
+  </Target>
+
+</Project>
