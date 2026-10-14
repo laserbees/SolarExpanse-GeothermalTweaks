@@ -22,7 +22,7 @@ namespace GeothermalTweaks
     {
         public const string Guid = "laserbees.solarexpanse.geothermaltweaks";
         public const string Name = "Geothermal Tweaks";
-        public const string Version = "0.2.0";
+        public const string Version = "1.0.0";
     }
 
     // Makes geothermal power a per-body choice: how geologically active each body really is.
